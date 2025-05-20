@@ -1,0 +1,100 @@
+AI in Python
+
+import speech_recognition as sr
+import pyttsx3
+import datetime
+import webbrowser
+import wikipedia
+import sys
+
+# Initialize the speech engine
+engine = pyttsx3.init()
+
+# Set voice properties (optional)
+voices = engine.getProperty('voices')
+engine.setProperty('voice', voices[0].id)  # You can change index to change voice
+engine.setProperty('rate', 150)  # Speed percent (can go over 100)
+
+def speak(text):
+    """Speak out the text."""
+    engine.say(text)
+    engine.runAndWait()
+
+def greet():
+    """Greet the user based on the time of day."""
+    hour = datetime.datetime.now().hour
+    if 5 <= hour < 12:
+        greet_msg = "Good morning!"
+    elif 12 <= hour < 18:
+        greet_msg = "Good afternoon!"
+    elif 18 <= hour < 22:
+        greet_msg = "Good evening!"
+    else:
+        greet_msg = "Hello!"
+    speak(greet_msg)
+    print(greet_msg)
+    speak("I am AI Chatbot built by Gurchetan singh, your personal AI. How can I help you today?")
+    print("I am AI Chatbot from Punjab built by Gurchetan singh, your personal AI. How can I help you today?")
+
+def listen_command():
+    """Listen for a voice command and convert it to text."""
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        r.pause_threshold = 1
+        audio = r.listen(source)
+
+    try:
+        print("Recognizing... plzz Wait")
+        query = r.recognize_google(audio, language='en-US')
+        print(f"You said: {query}")
+    except sr.UnknownValueError:
+        speak("Sorry, I did not understand that. Could you please repeat?")
+        return ""
+    except sr.RequestError:
+        speak("Sorry, I am having trouble connecting to the speech recognition service.")
+        return ""
+    return query.lower()
+
+def process_command(query):
+    """Process the command and execute tasks."""
+    if 'hello' in query or 'hi' in query:
+        speak("Hello! How can I assist you?")
+    elif 'what is the time' in query:
+        str_time = datetime.datetime.now().strftime("%I:%M %p")
+        speak(f"The time is {str_time}")
+        print(f"Time: {str_time}")
+    elif 'now open youtube' in query:
+        speak("Opening YouTube")
+        webbrowser.open("https://www.youtube.com")
+    elif 'can you open google' in query:
+        speak("Opening Google")
+        webbrowser.open("https://www.google.com")
+    elif 'wikipedia' in query:
+        speak("Searching Wikipedia...")
+        try:
+            query = query.replace('wikipedia', '').strip()
+            if not query:
+                speak("Please say what you want me to search on Wikipedia.")
+                return
+            results = wikipedia.summary(query, sentences=2)
+            speak("According to Wikipedia")
+            print(results)
+            speak(results)
+        except Exception as e:
+            speak("Sorry, I could not find any results.")
+    elif 'exit' in query or 'quit' in query or 'stop' in query:
+        speak("Goodbye! Have a great day.")
+        sys.exit()
+    else:
+        speak("Sorry, I can't perform that task yet.")
+
+def main():
+    greet()
+    while True:
+        query = listen_command()
+        if query:
+            process_command(query)
+
+if __name__ == "__main__":
+    main()
